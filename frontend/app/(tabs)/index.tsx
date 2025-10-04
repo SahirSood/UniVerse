@@ -9,11 +9,11 @@ import { Link } from 'expo-router';
 
 import { Button } from 'react-native';
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
-import { app} from '@/src/firebase';
+import { firebaseApp} from '@/src/firebase';
 
 
 export default function HomeScreen() {
-  const db = getFirestore(app);
+  const db = getFirestore(firebaseApp);
 
   const addTestEntry = async () => {
     try {
