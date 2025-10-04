@@ -1,7 +1,7 @@
 import express from 'express';
 import http from 'http';
-import findNearestPolygon from './helpers/LocationToRoom.js';
-import SocketServerInit from './helpers/WebSockets.js';
+import findNearestPolygon from './helpers/locations.js';
+import SocketServerInit from './helpers/socketserver.js';
 
 // location imports
 import fs from "fs";
