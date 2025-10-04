@@ -1,10 +1,17 @@
 enum LocationId {
-  LIBRARY = 1,
-  ASB = 2,
-  WMC = 3,
-  DORM = 4,
-  LAB = 5,
-  CLASSROOM = 6,
+  DINING_COMMONS = 1,
+  WEST_MALL = 2,
+  RESIDENCE = 3,
+  SHRUM_SCIENCE = 4,
+  STRAND_HALL = 5,
+  BLUSSON_HALL = 6,
+  AQ = 7,
+  EDUCATION_BUILDING = 8,
+  LIBRARY = 9,
+  SUB = 10,
+  APPLIED_SCIENCE_BUILDING = 11,
+  HIGH_STREET = 12,
+  TECHNOLOGY_AND_SCIENCE_BUILDING = 13,
 }
 
 export default LocationId;
