@@ -7,7 +7,26 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Link } from 'expo-router';
 
+import { Button } from 'react-native';
+import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import { app} from '@/src/firebase';
+
+
 export default function HomeScreen() {
+  const db = getFirestore(app);
+
+  const addTestEntry = async () => {
+    try {
+      const docRef = await addDoc(collection(db, 'test'), {
+        createdAt: new Date(),
+        message: 'Hello World', // your custom data
+      });
+      alert(`Entry added with ID: ${docRef.id}`);
+    } catch (e) {
+      console.error('Error adding document: ', e);
+      alert('Failed to add entry');
+    }
+  };
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -17,6 +36,11 @@ export default function HomeScreen() {
           style={styles.reactLogo}
         />
       }>
+    <ThemedView style={styles.stepContainer}>
+        <ThemedText type="subtitle">Step 4: Add a test entry</ThemedText>
+        <Button title="Add Entry" onPress={addTestEntry} />
+      </ThemedView>
+      
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
