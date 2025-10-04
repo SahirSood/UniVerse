@@ -1,1 +1,15 @@
 /frontend/node_modules/
+
+# ===== Firebase & Emulator =====
+firebase-debug.log
+firestore.indexes.json
+firestore.rules
+firebase-export/
+.emulator-data/
+.firebase/
+.firestore/
+.storage/
+auth_export/
+
+# ===== Functions build =====
+backend/functions/node_modules/
