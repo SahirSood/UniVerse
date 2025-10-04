@@ -1,23 +1,16 @@
 import express from 'express';
-import { Server as SocketIOServer } from "socket.io";
-import LocationId from './enums/location_id';
 import findNearestPolygon from './helpers/LocationToRoom';
+import SocketServerInit from './helpers/WebSockets';
 
 // location imports
 import geojson from "../locations/SFU.geojson"
 
 
-
+// Server starting
 const server = express();
 const port = 3000
+const socketServer = SocketServerInit(server, port)
 
-// WebSocket 
-const io = new SocketIOServer(server, {
-    // cors: {
-    //     origin: [process.env.CLIENT_URL],
-    //     credentials: true,
-    // }
-});
 
 server.get('/', (req, res) => {
   res.send('Hello World!')
