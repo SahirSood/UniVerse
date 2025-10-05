@@ -1,257 +1,168 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useMemo, useState } from 'react';
+import { SafeAreaView, View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 type BroadcastType = 'coffee' | 'help' | 'study' | 'lost-found' | 'rideshare' | 'food-delivery';
 
-interface BroadcastPreference {
-  id: BroadcastType;
+type Broadcast = {
+  id: string;
+  type: BroadcastType;
   title: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  color: string;
-}
+  message: string;
+  from: string;
+  time: string;
+  location?: string;
+};
 
-export default function ProfileScreen() {
-  const user = {
-    name: 'John Doe',
-    major: 'Computer Science Major',
-    karma: 247,
-    helpsGiven: 42,
-    coffeeRuns: 18,
-  };
+const typeMeta: Record<BroadcastType, { color: string; icon: keyof typeof Ionicons.glyphMap; label: string }> = {
+  'coffee': { color: '#CC0633', icon: 'cafe', label: 'Coffee' },
+  'help': { color: '#CC0633', icon: 'help-buoy', label: 'Help' },
+  'study': { color: '#CC0633', icon: 'book', label: 'Study' },
+  'lost-found': { color: '#CC0633', icon: 'search', label: 'Lost & Found' },
+  'rideshare': { color: '#3B82F6', icon: 'car', label: 'Rideshare' },
+  'food-delivery': { color: '#10B981', icon: 'restaurant', label: 'Food' },
+};
 
-  // Broadcast preferences state
-  const [broadcastPreferences, setBroadcastPreferences] = useState<Record<BroadcastType, boolean>>({
+export default function HomeScreen() {
+  // Hardcoded preferences; later replace with shared state from Profile
+  const preferences: Record<BroadcastType, boolean> = {
     'coffee': true,
     'help': true,
     'study': true,
     'lost-found': true,
     'rideshare': false,
     'food-delivery': false,
-  });
-
-  const broadcastTypes: BroadcastPreference[] = [
-    { id: 'coffee', title: 'Coffee Runs', icon: 'cafe', color: '#CC0633' },
-    { id: 'help', title: 'Help Requests', icon: 'help-circle', color: '#CC0633' },
-    { id: 'study', title: 'Study Groups', icon: 'book', color: '#CC0633' },
-    { id: 'lost-found', title: 'Lost & Found', icon: 'search', color: '#CC0633' },
-    { id: 'rideshare', title: 'Ride Sharing', icon: 'car', color: '#3B82F6' },
-    { id: 'food-delivery', title: 'Food Delivery', icon: 'restaurant', color: '#10B981' },
-  ];
-
-  const toggleBroadcastPreference = (type: BroadcastType) => {
-    setBroadcastPreferences(prev => ({
-      ...prev,
-      [type]: !prev[type]
-    }));
   };
 
-  const menuItems = [
-    { id: 1, title: 'Edit Profile', icon: 'person-outline' as const },
-    { id: 2, title: 'Settings', icon: 'settings-outline' as const },
-    { id: 3, title: 'Privacy', icon: 'lock-closed-outline' as const },
-    { id: 4, title: 'Notifications', icon: 'notifications-outline' as const },
-    { id: 5, title: 'Help & Support', icon: 'help-circle-outline' as const },
+  // Example incoming broadcasts
+  const allIncoming: Broadcast[] = [
+    { id: 'b1', type: 'coffee', title: 'Coffee Run', message: 'Grabbing iced lattes. Want one?', from: 'Sarah M.', time: '2m', location: 'Tim Hortons - Main' },
+    { id: 'b2', type: 'help', title: 'Need Calculator', message: 'Forgot calculator for MATH 101', from: 'Mike T.', time: '5m', location: 'Library 2F' },
+    { id: 'b3', type: 'study', title: 'Finals Study Group', message: 'CS201 study in 10 mins', from: 'Emma L.', time: '8m', location: 'Student Center' },
+    { id: 'b4', type: 'lost-found', title: 'Lost Water Bottle', message: 'Blue Hydroflask near gym', from: 'Alex P.', time: '12m', location: 'Gym Entrance' },
   ];
+
+  const [incoming, setIncoming] = useState<Broadcast[]>(allIncoming);
+  const [commitments, setCommitments] = useState<Broadcast[]>([
+    // Example pre-committed item
+    { id: 'c1', type: 'help', title: 'Lab Partner', message: 'Helping with lab wiring', from: 'You', time: 'Today', location: 'ENG Building' },
+  ]);
+
+  const filteredIncoming = useMemo(
+    () => incoming.filter(b => preferences[b.type]),
+    [incoming]
+  );
+
+  const acceptBroadcast = (id: string) => {
+    const b = incoming.find(x => x.id === id);
+    if (!b) return;
+    setIncoming(prev => prev.filter(x => x.id !== id));
+    setCommitments(prev => [{ ...b, from: 'You', time: 'Now' }, ...prev]);
+  };
+
+  const declineBroadcast = (id: string) => {
+    setIncoming(prev => prev.filter(x => x.id !== id));
+  };
+
+  const BroadcastCard = ({ b }: { b: Broadcast }) => {
+    const meta = typeMeta[b.type];
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={[styles.iconWrap, { backgroundColor: `${meta.color}14` }]}>
+            <Ionicons name={meta.icon as any} size={18} color={meta.color} />
+          </View>
+          <Text style={styles.cardTitle}>{b.title}</Text>
+          <View style={styles.spacer} />
+          <Text style={styles.time}>{b.time}</Text>
+        </View>
+        <Text style={styles.message}>{b.message}</Text>
+        <View style={styles.metaRow}>
+          <Text style={styles.metaText}>From: {b.from}</Text>
+          {b.location ? <Text style={styles.metaText}> • {b.location}</Text> : null}
+        </View>
+        <View style={styles.actionsRow}>
+          <TouchableOpacity style={styles.declineBtn} onPress={() => declineBroadcast(b.id)}>
+            <Text style={styles.declineText}>Dismiss</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.acceptBtn} onPress={() => acceptBroadcast(b.id)}>
+            <Ionicons name="checkmark-circle" size={16} color="#fff" />
+            <Text style={styles.acceptText}>Accept</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  const CommitmentCard = ({ b }: { b: Broadcast }) => {
+    const meta = typeMeta[b.type];
+    return (
+      <View style={styles.commitCard}>
+        <View style={styles.cardHeader}>
+          <View style={[styles.iconWrap, { backgroundColor: `${meta.color}14` }]}>
+            <Ionicons name={meta.icon as any} size={18} color={meta.color} />
+          </View>
+          <Text style={styles.cardTitle}>{b.title}</Text>
+          <View style={styles.spacer} />
+          <Text style={styles.time}>{b.time}</Text>
+        </View>
+        <Text style={styles.message}>{b.message}</Text>
+        <View style={styles.metaRow}>
+          {b.location ? <Text style={styles.metaText}>{b.location}</Text> : null}
+        </View>
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Profile Header */}
-        <View style={styles.header}>
-          <View style={styles.avatarContainer}>
-            <Text style={styles.avatarText}>JD</Text>
-          </View>
-          <Text style={styles.name}>{user.name}</Text>
-          <Text style={styles.major}>{user.major}</Text>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <Text style={styles.heading}>Incoming Broadcasts</Text>
+        <View style={styles.list}>
+          {filteredIncoming.length === 0 ? (
+            <Text style={styles.emptyText}>No new broadcasts</Text>
+          ) : (
+            filteredIncoming.map(b => <BroadcastCard key={b.id} b={b} />)
+          )}
         </View>
 
-        {/* Karma Section */}
-        <View style={styles.karmaCard}>
-          <View style={styles.karmaHeader}>
-            <Ionicons name="star" size={24} color="#CC0633" />
-            <Text style={styles.karmaLabel}>Karma Points</Text>
-          </View>
-          <Text style={styles.karmaValue}>{user.karma}</Text>
-          <Text style={styles.karmaSubtext}>Keep helping others to earn more!</Text>
+        <Text style={[styles.heading, { marginTop: 12 }]}>Your Commitments</Text>
+        <View style={styles.list}>
+          {commitments.length === 0 ? (
+            <Text style={styles.emptyText}>No commitments yet</Text>
+          ) : (
+            commitments.map(b => <CommitmentCard key={b.id} b={b} />)
+          )}
         </View>
-
-        {/* Stats Grid */}
-        <View style={styles.statsGrid}>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{user.helpsGiven}</Text>
-            <Text style={styles.statLabel}>Helps Given</Text>
-            <Ionicons name="hand-left" size={20} color="#CC0633" style={styles.statIcon} />
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{user.coffeeRuns}</Text>
-            <Text style={styles.statLabel}>Coffee Runs</Text>
-            <Ionicons name="cafe" size={20} color="#CC0633" style={styles.statIcon} />
-          </View>
-        </View>
-
-        {/* Broadcast Preferences */}
-        <View style={styles.preferencesSection}>
-          <Text style={styles.preferencesTitle}>Broadcast Alerts</Text>
-          <Text style={styles.preferencesSubtitle}>Choose which broadcasts you want to receive alerts for</Text>
-          
-          <View style={styles.preferencesList}>
-            {broadcastTypes.map((type) => (
-              <View key={type.id} style={styles.preferenceItem}>
-                <View style={styles.preferenceLeft}>
-                  <View style={[styles.preferenceIconContainer, { backgroundColor: `${type.color}15` }]}>
-                    <Ionicons name={type.icon} size={20} color={type.color} />
-                  </View>
-                  <Text style={styles.preferenceText}>{type.title}</Text>
-                </View>
-                <Switch
-                  value={broadcastPreferences[type.id]}
-                  onValueChange={() => toggleBroadcastPreference(type.id)}
-                  trackColor={{ false: '#E5E7EB', true: `${type.color}40` }}
-                  thumbColor={broadcastPreferences[type.id] ? type.color : '#9CA3AF'}
-                />
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Menu Items */}
-        <View style={styles.menuSection}>
-          {menuItems.map((item) => (
-            <TouchableOpacity key={item.id} style={styles.menuItem}>
-              <View style={styles.menuItemLeft}>
-                <View style={styles.menuIconContainer}>
-                  <Ionicons name={item.icon} size={20} color="#CC0633" />
-                </View>
-                <Text style={styles.menuItemText}>{item.title}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton}>
-          <Ionicons name="log-out-outline" size={20} color="#CC0633" />
-          <Text style={styles.logoutText}>Log Out</Text>
-        </TouchableOpacity>
-
-        {/* Version Info */}
-        <Text style={styles.versionText}>Version 1.0.0</Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
+  container: { flex: 1, backgroundColor: '#fff' },
+  scroll: { padding: 16, paddingBottom: 32 },
+  heading: { fontSize: 18, fontWeight: '800', color: '#1F2937', marginBottom: 8 },
+  list: { gap: 10 },
+  card: {
+    borderWidth: 1, borderColor: '#F3D5DC', borderRadius: 12, padding: 12, backgroundColor: '#FFF5F7',
   },
-  scrollContent: {
-    padding: 16,
+  commitCard: {
+    borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 12, backgroundColor: '#F9FAFB',
   },
-  header: {
-    alignItems: 'center',
-    marginBottom: 24,
-    paddingTop: 16,
-  },
-  avatarContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: '#CC0633',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  avatarText: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  name: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#2D2D2D',
-  },
-  major: {
-    fontSize: 13,
-    color: '#666',
-    marginTop: 4,
-  },
-  karmaCard: {
-    backgroundColor: '#fff6f6',
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#fdeeee',
-    marginBottom: 16,
-  },
-  karmaHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  karmaLabel: { fontSize: 14, fontWeight: '600', color: '#444' },
-  karmaValue: { fontSize: 26, fontWeight: '800', color: '#CC0633', marginTop: 8 },
-  karmaSubtext: { color: '#666', marginTop: 4 },
-  statsGrid: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginBottom: 16 },
-  statCard: { flex: 1, backgroundColor: '#f6f6f6', padding: 12, borderRadius: 12, alignItems: 'center' },
-  statValue: { fontSize: 22, fontWeight: '800', color: '#2D2D2D' },
-  statLabel: { fontSize: 12, color: '#666', marginTop: 6 },
-  statIcon: { marginTop: 8 },
-  menuSection: { marginTop: 8 },
-  menuItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 12, borderWidth: 1, borderColor: '#f3eded', borderRadius: 10, marginTop: 8, backgroundColor: '#fff' },
-  menuItemLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  menuIconContainer: { width: 38, height: 38, borderRadius: 10, backgroundColor: '#fff0f1', alignItems: 'center', justifyContent: 'center' },
-  menuItemText: { fontSize: 15, color: '#2D2D2D' },
-  logoutButton: { marginTop: 18, flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#fdeeee', backgroundColor: '#fff' },
-  logoutText: { color: '#CC0633', fontWeight: '700' },
-  versionText: { marginTop: 12, color: '#999', textAlign: 'center' },
-  // Broadcast Preferences Styles
-  preferencesSection: {
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  preferencesTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#2D2D2D',
-    marginBottom: 4,
-  },
-  preferencesSubtitle: {
-    fontSize: 13,
-    color: '#666666',
-    marginBottom: 16,
-  },
-  preferencesList: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
-    overflow: 'hidden',
-  },
-  preferenceItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  preferenceLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  preferenceIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  preferenceText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#2D2D2D',
-  },
+  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+  iconWrap: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: 8 },
+  cardTitle: { fontSize: 15, fontWeight: '700', color: '#111827' },
+  time: { fontSize: 12, color: '#6B7280' },
+  spacer: { flex: 1 },
+  message: { fontSize: 14, color: '#374151', marginBottom: 6 },
+  metaRow: { flexDirection: 'row', alignItems: 'center' },
+  metaText: { fontSize: 12, color: '#6B7280' },
+  actionsRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
+  declineBtn: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10, backgroundColor: '#F3F4F6' },
+  declineText: { color: '#111827', fontWeight: '600' },
+  acceptBtn: { flexDirection: 'row', gap: 6, alignItems: 'center', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10, backgroundColor: '#CC0633' },
+  acceptText: { color: '#fff', fontWeight: '700' },
+
+  emptyText: { fontSize: 14, color: '#6B7280', textAlign: 'center', paddingVertical: 8 },
 });
