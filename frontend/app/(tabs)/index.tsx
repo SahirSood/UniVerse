@@ -204,7 +204,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
-          <Text style={styles.heading}>Incoming Broadcasts</Text>
+          <Text style={[styles.heading, { marginTop: 0 }]}>Incoming Broadcasts</Text>
           <View style={styles.connectionStatus}>
             <View style={[styles.statusDot, { backgroundColor: isSocketConnected ? '#10B981' : '#EF4444' }]} />
             <Text style={styles.statusText}>
@@ -236,7 +236,7 @@ export default function HomeScreen() {
           )}
         </View>
 
-        <Text style={[styles.heading, { marginTop: 12 }]}>Your Commitments</Text>
+        <Text style={styles.heading}>Your Commitments</Text>
         <View style={styles.list}>
           {commitments.length === 0 ? (
             <Text style={styles.emptyText}>No commitments yet</Text>
@@ -244,6 +244,7 @@ export default function HomeScreen() {
             commitments.map(b => <CommitmentCard key={b.id} b={b} />)
           )}
         </View>
+        <View style={styles.bottomSpacing} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -258,7 +259,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     marginBottom: 8 
   },
-  heading: { fontSize: 18, fontWeight: '800', color: '#1F2937' },
+  heading: { fontSize: 18, fontWeight: '800', color: '#1F2937', marginTop: 12 },
   list: { gap: 10 },
   card: {
     borderWidth: 1, borderColor: '#F3D5DC', borderRadius: 12, padding: 12, backgroundColor: '#FFF5F7',
@@ -330,5 +331,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     color: '#CC0633',
+  },
+  bottomSpacing: {
+    height: 20,
   },
 });
