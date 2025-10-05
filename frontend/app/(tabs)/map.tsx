@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import MapView, { Geojson, Marker, Circle } from 'react-native-maps';
 import geojsonData from '../../assets/SFU.json';
 import { useUserLocation } from '../../hooks/useUserLocation';
 
 export default function TestScreen() {
+  const mapRef = useRef<MapView>(null);
   const { status, coords, error, start, stop } = useUserLocation({
     distanceInterval: 15,
     timeInterval: 5000,
@@ -14,10 +15,20 @@ export default function TestScreen() {
     start();
     return () => stop();
   }, []);
-
+  const centerOnUser = () => {
+    if (coords && mapRef.current) {
+      mapRef.current.animateToRegion({
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        latitudeDelta: 0.0005,
+        longitudeDelta: 0.0005,
+      }, 1000);
+    }
+  };
   return (
     <View style={styles.container}>
       <MapView
+        ref={mapRef}
         style={styles.map}
         initialRegion={{
           latitude: coords?.latitude || 49.2781,
@@ -59,13 +70,16 @@ export default function TestScreen() {
         />
         )}
       </MapView>
-      
-      {/* Optional: Show status */}
-      {error && (
-        <View style={styles.errorBox}>
-          <Text style={styles.errorText}>Error: {error}</Text>
-        </View>
-      )}
+
+      {/* Find Me Button */}
+      <TouchableOpacity 
+        style={styles.findMeButton}
+        onPress={centerOnUser}
+      >
+        <Text style={styles.findMeText}>📍</Text>
+      </TouchableOpacity>
+  
+
     </View>
   );
 }
@@ -91,5 +105,24 @@ const styles = StyleSheet.create({
   errorText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  findMeButton: {
+    position: 'absolute',
+    bottom: 30,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  findMeText: {
+    fontSize: 24,
   },
 });
