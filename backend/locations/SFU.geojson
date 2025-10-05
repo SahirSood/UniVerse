@@ -3,7 +3,7 @@
   "features": [
     {
       "type": "Feature",
-      "properties": { "Name": "Dining Commons" },
+      "properties": { "Name": "Dining Commons", "short": "DINING_COMMONS" },
       "geometry": {
         "coordinates": [
           [
@@ -21,7 +21,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "name": "West Mall" },
+      "properties": { "name": "West Mall", "short": "WEST_MALL" },
       "geometry": {
         "coordinates": [
           [
@@ -40,7 +40,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "name": "Residence" },
+      "properties": { "name": "Residence", "short": "RESIDENCE" },
       "geometry": {
         "coordinates": [
           [
@@ -60,7 +60,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "name": "Shrum Science" },
+      "properties": { "name": "Shrum Science", "short": "SHRUM_SCIENCE" },
       "geometry": {
         "coordinates": [
           [
@@ -80,7 +80,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "name": "Strand Hall" },
+      "properties": { "name": "Strand Hall", "short": "STRAND_HALL" },
       "geometry": {
         "coordinates": [
           [
@@ -100,7 +100,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "name": "Blusson Hall" },
+      "properties": { "name": "Blusson Hall", "short": "BLUSSON_HALL" },
       "geometry": {
         "coordinates": [
           [
@@ -120,7 +120,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "name": "AQ" },
+      "properties": { "name": "AQ", "short": "AQ" },
       "geometry": {
         "coordinates": [
           [
@@ -139,7 +139,10 @@
     },
     {
       "type": "Feature",
-      "properties": { "name": "Education Building" },
+      "properties": {
+        "name": "Education Building",
+        "short": "EDUCATION_BUILDING"
+      },
       "geometry": {
         "coordinates": [
           [
@@ -158,7 +161,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "name": "Library" },
+      "properties": { "name": "Library", "short": "LIBRARY" },
       "geometry": {
         "coordinates": [
           [
@@ -177,7 +180,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "name": "SUB" },
+      "properties": { "name": "SUB", "short": "SUB" },
       "geometry": {
         "coordinates": [
           [
@@ -196,7 +199,10 @@
     },
     {
       "type": "Feature",
-      "properties": { "name": "Applied Science Building" },
+      "properties": {
+        "name": "Applied Science Building",
+        "short": "APPLIED_SCIENCE_BUILDING"
+      },
       "geometry": {
         "coordinates": [
           [
@@ -214,7 +220,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "name": "High Street" },
+      "properties": { "name": "High Street", "short": "HIGH_STREET" },
       "geometry": {
         "coordinates": [
           [
@@ -231,7 +237,10 @@
     },
     {
       "type": "Feature",
-      "properties": { "name": "Technology and Science Building" },
+      "properties": {
+        "name": "Technology and Science Building",
+        "short": "TECHNOLOGY_AND_SCIENCE_BUILDING"
+      },
       "geometry": {
         "coordinates": [
           [

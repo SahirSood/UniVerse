@@ -1,4 +1,4 @@
-import * as d3 from "d3";
+import * as d3 from "d3-geo";
 import * as turf from "@turf/turf";
 
 // Inefficient, but works for a small-scale project.

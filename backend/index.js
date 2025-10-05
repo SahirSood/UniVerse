@@ -1,33 +1,38 @@
 import express from 'express';
-import { Server as SocketIOServer } from "socket.io";
-import LocationId from './enums/location_id';
-import findNearestPolygon from './helpers/LocationToRoom';
+import http from 'http';
+import findNearestPolygon from './helpers/locations.js';
+import SocketServerInit from './helpers/socketserver.js';
 
 // location imports
-import geojson from "../locations/SFU.geojson"
+import fs from "fs";
+const geojson = JSON.parse(
+  fs.readFileSync(new URL("./locations/SFU.geojson", import.meta.url), "utf8")
+);
 
-
-
-const server = express();
+// Server starting
+const app = express();
+const server = http.createServer(app);
 const port = 3000
 
-// WebSocket 
-const io = new SocketIOServer(server, {
-    // cors: {
-    //     origin: [process.env.CLIENT_URL],
-    //     credentials: true,
-    // }
-});
+SocketServerInit(server, port)
 
-server.get('/', (req, res) => {
+app.get('/', (req, res) => {
   res.send('Hello World!')
 });
 
-server.get('/locations', (req, res) => {
-  const location = findNearestPolygon(geojson, req.lat, req.lon);
-  res.send(location);
+app.get('/locations', (req, res) => {
+  const lat = parseFloat(req.query.lat);
+  const lon = parseFloat(req.query.lon);
+
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    return res.status(400).json({ error: 'lat and lon query params required as numbers' });
+  }
+
+  // IMPORTANT: function expects (lon, lat)
+  const location = findNearestPolygon(geojson, lon, lat);
+  return res.json(location);
 });
 
-server.listen(port, () => {
+app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 });
