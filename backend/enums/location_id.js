@@ -12,8 +12,6 @@ const LocationId = Object.freeze({
   APPLIED_SCIENCE_BUILDING: 11,
   HIGH_STREET: 12,
   TECHNOLOGY_AND_SCIENCE_BUILDING: 13,
-  
-  //change this later 
   coffee:14,
   help: 15,
   study: 16,

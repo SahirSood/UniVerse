@@ -12,7 +12,7 @@ interface Message {
   user: string;
   text: string;
   time: string;
-  type: 'coffee' | 'help' | 'study' | 'normal';
+  type: 'coffee' | 'help' | 'study' | 'lost' | 'rideshare' | 'food' | 'normal';
   isMe: boolean;
 }
 
@@ -49,6 +49,13 @@ const LOCATIONS: LocationInfo[] = [
   { id: 'APPLIED_SCIENCE_BUILDING', name: 'Applied Science Building' },
   { id: 'HIGH_STREET', name: 'High Street' },
   { id: 'TECHNOLOGY_AND_SCIENCE_BUILDING', name: 'Technology and Science Building' },
+  // Temporary rooms
+  { id: 'coffee', name: 'Coffee' },
+  { id: 'help', name: 'Help' },
+  { id: 'study', name: 'Study' },
+  { id: 'lost', name: 'Lost' },
+  { id: 'rideshare', name: 'Rideshare' },
+  { id: 'food', name: 'Food' },
 ];
 
 // Update this to your backend URL - use your local network IP, not localhost
@@ -271,6 +278,31 @@ export default function ChatScreen() {
       {item.type === 'coffee' && !item.isMe && (
         <TouchableOpacity style={styles.actionButton}>
           <Text style={styles.actionButtonText}>Join Coffee Run</Text>
+        </TouchableOpacity>
+      )}
+      {item.type === 'help' && !item.isMe && (
+        <TouchableOpacity style={styles.actionButton}>
+          <Text style={styles.actionButtonText}>Offer Help</Text>
+        </TouchableOpacity>
+      )}
+      {item.type === 'study' && !item.isMe && (
+        <TouchableOpacity style={styles.actionButton}>
+          <Text style={styles.actionButtonText}>Join Study Group</Text>
+        </TouchableOpacity>
+      )}
+      {item.type === 'lost' && !item.isMe && (
+        <TouchableOpacity style={styles.actionButton}>
+          <Text style={styles.actionButtonText}>Help Navigate</Text>
+        </TouchableOpacity>
+      )}
+      {item.type === 'rideshare' && !item.isMe && (
+        <TouchableOpacity style={styles.actionButton}>
+          <Text style={styles.actionButtonText}>Join Ride</Text>
+        </TouchableOpacity>
+      )}
+      {item.type === 'food' && !item.isMe && (
+        <TouchableOpacity style={styles.actionButton}>
+          <Text style={styles.actionButtonText}>Get Food Info</Text>
         </TouchableOpacity>
       )}
     </View>
