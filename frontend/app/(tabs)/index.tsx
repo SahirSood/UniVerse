@@ -1,9 +1,10 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { io, Socket } from 'socket.io-client';
 import { useUserId } from '../../hooks/useUserId';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type BroadcastType = 'coffee' | 'help' | 'study' | 'lost' | 'rideshare' | 'food';
 
@@ -47,23 +48,117 @@ export default function ProfileScreen() {
     { id: 'food', title: 'Food Delivery', icon: 'restaurant', color: '#10B981' },
   ];
   const { userId, loading } = useUserId();
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
+  const [hasSynced, setHasSynced] = useState(false);
 
-  const toggleBroadcastPreference = (type: BroadcastType) => {
+  // Initialize socket connection
+  useEffect(() => {
+    if (!socketRef.current) {
+      socketRef.current = io(SOCKET_URL);
+      
+      socketRef.current.on('connect', () => {
+        console.log('Connected to socket server');
+        setIsSocketConnected(true);
+      });
+
+      socketRef.current.on('disconnect', () => {
+        console.log('Disconnected from socket server');
+        setIsSocketConnected(false);
+      });
+
+      socketRef.current.on('joinedRoom', (data) => {
+        console.log('Joined room:', data.room);
+      });
+
+      socketRef.current.on('leftRoom', (data) => {
+        console.log('Left room:', data.room);
+      });
+    }
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+    };
+  }, []);
+
+  // Load saved preferences on component mount
+  useEffect(() => {
+    loadPreferences();
+  }, []);
+
+  // Sync preferences with socket when userId changes or socket connects
+  useEffect(() => {
+    if (userId && socketRef.current && isSocketConnected && !hasSynced) {
+      // Only sync once on initial connection
+      syncPreferencesWithSocket();
+      setHasSynced(true);
+    }
+  }, [userId, isSocketConnected, hasSynced]);
+
+  const loadPreferences = async () => {
+    try {
+      const savedPreferences = await AsyncStorage.getItem('roomPreferences');
+      if (savedPreferences) {
+        const parsed = JSON.parse(savedPreferences);
+        setBroadcastPreferences(prev => 
+          Object.keys(prev).reduce((acc, key) => {
+            acc[key as BroadcastType] = parsed[key] || false;
+            return acc;
+          }, {} as Record<BroadcastType, boolean>)
+        );
+      }
+    } catch (error) {
+      console.error('Error loading preferences:', error);
+    }
+  };
+
+  const savePreferences = async (preferences: Record<BroadcastType, boolean>) => {
+    try {
+      await AsyncStorage.setItem('roomPreferences', JSON.stringify(preferences));
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+    }
+  };
+
+  const syncPreferencesWithSocket = () => {
+    if (!socketRef.current || !userId || !isSocketConnected) return;
+
+    Object.entries(broadcastPreferences).forEach(([room, enabled]) => {
+      if (enabled) {
+        socketRef.current!.emit('joinRoom', userId, room);
+      } else {
+        socketRef.current!.emit('leaveRoom', userId, room);
+      }
+    });
+  };
+
+  const toggleBroadcastPreference = async (type: BroadcastType) => {
     const newValue = !broadcastPreferences[type];
     
-    setBroadcastPreferences(prev => ({
-      ...prev,
+    const updatedPreferences = {
+      ...broadcastPreferences,
       [type]: newValue
-    }));
+    };
+    
+    setBroadcastPreferences(updatedPreferences);
+    
+    // Save preferences to AsyncStorage
+    await savePreferences(updatedPreferences);
   
-    if (socketRef.current && userId) {
+    if (socketRef.current && userId && isSocketConnected) {
       if (newValue) {
         // Join room when toggled ON
         socketRef.current.emit('joinRoom', userId, type);
+        console.log(`Joined room: ${type}`);
       } else {
         // Leave room when toggled OFF
         socketRef.current.emit('leaveRoom', userId, type);
+        console.log(`Left room: ${type}`);
       }
+    } else if (!isSocketConnected) {
+      console.log('Socket not connected, room preference saved but not synced yet');
     }
   };
   const menuItems = [
@@ -84,6 +179,12 @@ export default function ProfileScreen() {
           </View>
           <Text style={styles.name}>{user.name}</Text>
           <Text style={styles.major}>{user.major}</Text>
+          <View style={styles.connectionStatus}>
+            <View style={[styles.statusDot, { backgroundColor: isSocketConnected ? '#10B981' : '#EF4444' }]} />
+            <Text style={styles.statusText}>
+              {isSocketConnected ? 'Connected' : 'Disconnected'}
+            </Text>
+          </View>
         </View>
 
         {/* Karma Section */}
@@ -272,5 +373,22 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
     color: '#2D2D2D',
+  },
+  // Connection Status Styles
+  connectionStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 6,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  statusText: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
   },
 });

@@ -10,6 +10,9 @@ function SocketServerInit(server, port) {
         rooms[location] = [];
     }
     
+    // Log all available rooms for debugging
+    console.log("Available rooms:", Object.keys(LocationIds));
+    
     try {
         io = new SocketIOServer(server, {
             cors: {
