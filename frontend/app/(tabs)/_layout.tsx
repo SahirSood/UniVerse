@@ -1,6 +1,6 @@
 // app/(tabs)/_layout.tsx
 import { Tabs } from 'expo-router';
-import { MapPin, MessageCircle, Radio, User } from 'lucide-react-native';
+import { MapPin, MessageCircle, Radio, User, Home } from 'lucide-react-native';
 import { View } from 'react-native';
 
 export default function TabLayout() {
@@ -32,6 +32,16 @@ export default function TabLayout() {
         },
       }}
     >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Home',
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
+            <Home color={color} size={size} />
+          ),
+          headerShown: false,
+        }}
+      />
       <Tabs.Screen
         name="map"
         options={{
