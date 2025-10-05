@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { io, Socket } from 'socket.io-client';
+import { useUserId } from '../../hooks/useUserId';
 
 type BroadcastType = 'coffee' | 'help' | 'study' | 'lost-found' | 'rideshare' | 'food-delivery';
 
@@ -12,9 +14,38 @@ interface QuickAction {
   color: string;
 }
 
+const SOCKET_URL = 'http://172.16.203.31:3000';
+
 export default function BroadcastScreen() {
   const [customMessage, setCustomMessage] = useState('');
   const [selectedType, setSelectedType] = useState<BroadcastType | null>(null);
+  const socketRef = useRef<Socket | null>(null);
+  const { userId, loading } = useUserId();
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
+
+  // Initialize socket connection
+  useEffect(() => {
+    if (!socketRef.current) {
+      socketRef.current = io(SOCKET_URL);
+      
+      socketRef.current.on('connect', () => {
+        console.log('Connected to socket server');
+        setIsSocketConnected(true);
+      });
+
+      socketRef.current.on('disconnect', () => {
+        console.log('Disconnected from socket server');
+        setIsSocketConnected(false);
+      });
+    }
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+    };
+  }, []);
 
   const quickActions: QuickAction[] = [
     { id: 'coffee', title: 'Coffee Run', icon: 'cafe', color: '#403838ff' },
@@ -51,12 +82,32 @@ export default function BroadcastScreen() {
   };
 
   const handleBroadcast = () => {
-    if (customMessage.trim()) {
+    if (customMessage.trim() && selectedType && socketRef.current && userId && isSocketConnected) {
+      const broadcastData = {
+        id: Date.now().toString(),
+        type: selectedType,
+        title: quickActions.find(action => action.id === selectedType)?.title || 'Broadcast',
+        message: customMessage,
+        from: 'You', // In a real app, this would be the user's name
+        time: 'now',
+        timestamp: Date.now()
+      };
+
+      // Send broadcast to the specific room (e.g., 'coffee' room)
+      socketRef.current.emit('sendMessage', userId, selectedType, broadcastData);
+      
       Alert.alert(
         'Message Sent!',
-        `Your message has been broadcast to everyone within 10 meters.`,
-        [{ text: 'OK', onPress: () => setCustomMessage('') }]
+        `Your ${selectedType} broadcast has been sent to all users with this preference enabled.`,
+        [{ text: 'OK', onPress: () => {
+          setCustomMessage('');
+          setSelectedType(null);
+        }}]
       );
+    } else if (!isSocketConnected) {
+      Alert.alert('Connection Error', 'Please check your internet connection and try again.');
+    } else if (!selectedType) {
+      Alert.alert('Select Type', 'Please select a broadcast type first.');
     }
   };
 
@@ -66,6 +117,12 @@ export default function BroadcastScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Broadcast</Text>
+          <View style={styles.connectionStatus}>
+            <View style={[styles.statusDot, { backgroundColor: isSocketConnected ? '#10B981' : '#EF4444' }]} />
+            <Text style={styles.statusText}>
+              {isSocketConnected ? 'Connected' : 'Disconnected'}
+            </Text>
+          </View>
         </View>
 
         {/* Quick Actions */}
@@ -114,12 +171,14 @@ export default function BroadcastScreen() {
 
         {/* Send Button */}
         <TouchableOpacity
-          style={[styles.broadcastButton, !customMessage.trim() && styles.broadcastButtonDisabled]}
+          style={[styles.broadcastButton, (!customMessage.trim() || !selectedType || !isSocketConnected) && styles.broadcastButtonDisabled]}
           onPress={handleBroadcast}
-          disabled={!customMessage.trim()}
+          disabled={!customMessage.trim() || !selectedType || !isSocketConnected}
         >
           <Ionicons name="radio" size={20} color="#FFFFFF" />
-          <Text style={styles.broadcastButtonText}>Broadcast to Nearby Users</Text>
+          <Text style={styles.broadcastButtonText}>
+            {selectedType ? `Broadcast ${quickActions.find(a => a.id === selectedType)?.title}` : 'Select Type to Broadcast'}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -230,5 +289,22 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
+  },
+  // Connection Status Styles
+  connectionStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 6,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  statusText: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
   },
 });

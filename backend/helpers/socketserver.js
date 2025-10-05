@@ -66,7 +66,7 @@ function SocketServerInit(server, port) {
         socket.on("sendMessage", (userId, room, message) => {
             if (LocationIds[room]) {
                 // Broadcast message to all users in the room except the sender
-                socket.broadcast.to(room).emit("recieveMessage", message);
+                socket.broadcast.to(room).emit("receiveMessage", message);
                 console.log(`Message sent in room ${room} by user ${userId}`);
             } else {
                 console.warn(`INVALID: User ${socket.id} tried to send message to room: ${room}`)

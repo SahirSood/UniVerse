@@ -6,7 +6,7 @@ import { io, Socket } from 'socket.io-client';
 import { useUserId } from '../../hooks/useUserId';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type BroadcastType = 'coffee' | 'help' | 'study' | 'lost' | 'rideshare' | 'food';
+type BroadcastType = 'coffee' | 'help' | 'study' | 'lost-found' | 'rideshare' | 'food-delivery';
 
 interface BroadcastPreference {
   id: BroadcastType;
@@ -34,18 +34,18 @@ export default function ProfileScreen() {
     'coffee': false,
     'help': false,
     'study': false,
-    'lost': false,
+    'lost-found': false,
     'rideshare': false,
-    'food': false,
+    'food-delivery': false,
   });
 
   const broadcastTypes: BroadcastPreference[] = [
     { id: 'coffee', title: 'Coffee Runs', icon: 'cafe', color: '#CC0633' },
     { id: 'help', title: 'Help Requests', icon: 'help-circle', color: '#CC0633' },
     { id: 'study', title: 'Study Groups', icon: 'book', color: '#CC0633' },
-    { id: 'lost', title: 'Lost & Found', icon: 'search', color: '#CC0633' },
+    { id: 'lost-found', title: 'Lost & Found', icon: 'search', color: '#CC0633' },
     { id: 'rideshare', title: 'Ride Sharing', icon: 'car', color: '#3B82F6' },
-    { id: 'food', title: 'Food Delivery', icon: 'restaurant', color: '#10B981' },
+    { id: 'food-delivery', title: 'Food Delivery', icon: 'restaurant', color: '#10B981' },
   ];
   const { userId, loading } = useUserId();
   const [isSocketConnected, setIsSocketConnected] = useState(false);

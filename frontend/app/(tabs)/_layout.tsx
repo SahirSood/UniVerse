@@ -22,15 +22,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="chat"
-        options={{
-          title: 'Chat',
-          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-            <Ionicons name="chatbubble-ellipses" color={color} size={size} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="broadcast"
         options={{
           title: 'Broadcast',
@@ -40,20 +31,29 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-            <Ionicons name="person" color={color} size={size} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="map"
         options={{
           title: 'Map',
           tabBarIcon: ({ color, size }: { color: string; size: number }) => (
             <Ionicons name="map" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="chat"
+        options={{
+          title: 'Chat',
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
+            <Ionicons name="chatbubble-ellipses" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
+            <Ionicons name="person" color={color} size={size} />
           ),
         }}
       />
