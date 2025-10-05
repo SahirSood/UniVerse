@@ -13,7 +13,8 @@ const geojson = JSON.parse(
 const app = express();
 const server = http.createServer(app);
 const port = 3000
-const socketServer = SocketServerInit(server, port)
+
+SocketServerInit(server, port)
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
