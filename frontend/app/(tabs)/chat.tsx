@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import io from 'socket.io-client';
 
 interface Message {
   id: number;
@@ -10,32 +11,107 @@ interface Message {
   time: string;
   type: 'coffee' | 'help' | 'study' | 'normal';
   isMe: boolean;
+  userId?: string;
 }
+
+const SOCKET_URL = 'http://YOUR_SERVER_IP:3000'; // Replace with your server IP
 
 export default function ChatScreen() {
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState<Message[]>([
-    { id: 1, user: 'Sarah M.', text: 'Anyone grabbing coffee? I\'ll take an iced latte!', time: '2m ago', type: 'coffee', isMe: false },
-    { id: 2, user: 'Mike T.', text: 'Need a calculator for MATH 101 exam!', time: '5m ago', type: 'help', isMe: false },
-    { id: 3, user: 'You', text: 'I can bring you one, where are you?', time: '4m ago', type: 'normal', isMe: true },
-    { id: 4, user: 'Emma L.', text: 'Study group forming for finals in 10 mins!', time: '8m ago', type: 'study', isMe: false },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [currentRoom, setCurrentRoom] = useState('Tim Hortons - Main Floor');
+  const [userCount, setUserCount] = useState(1);
+  
+  const socketRef = useRef<any>(null);
+  const flatListRef = useRef<FlatList>(null);
+  
+  // Generate a unique user ID (in production, this would come from your auth system)
+  const userId = useRef(`user_${Math.random().toString(36).substr(2, 9)}`).current;
+  const userName = useRef(`User${Math.floor(Math.random() * 1000)}`).current;
 
-  const currentRoom = 'Tim Hortons - Main Floor';
-  const userCount = 12;
+  useEffect(() => {
+    // Initialize socket connection
+    socketRef.current = io(SOCKET_URL, {
+      transports: ['websocket'],
+    });
+
+    socketRef.current.on('connect', () => {
+      console.log('Connected to socket server');
+      // Join the room when connected
+      socketRef.current.emit('joinRoom', userId, currentRoom);
+    });
+
+    socketRef.current.on('joinedRoom', (data: any) => {
+      console.log('Joined room:', data.room);
+    });
+
+    socketRef.current.on('recieveMessage', (msg: any) => {
+      // Received a message from another user
+      const newMessage: Message = {
+        id: Date.now() + Math.random(),
+        user: msg.userName || 'Anonymous',
+        text: msg.text,
+        time: 'Just now',
+        type: msg.type || 'normal',
+        isMe: false,
+        userId: msg.userId,
+      };
+      
+      setMessages(prev => [...prev, newMessage]);
+      
+      // Auto scroll to bottom
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    });
+
+    socketRef.current.on('error', (error: any) => {
+      console.error('Socket error:', error.message);
+    });
+
+    socketRef.current.on('disconnect', () => {
+      console.log('Disconnected from socket server');
+    });
+
+    // Cleanup on unmount
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+    };
+  }, [currentRoom]);
 
   const sendMessage = () => {
-    if (message.trim()) {
+    if (message.trim() && socketRef.current) {
+      const messageData = {
+        userId: userId,
+        userName: userName,
+        text: message.trim(),
+        type: 'normal',
+        timestamp: new Date().toISOString(),
+      };
+
+      // Emit message to server
+      socketRef.current.emit('sendMessage', userId, currentRoom, messageData);
+
+      // Add to local messages immediately
       const newMessage: Message = {
-        id: messages.length + 1,
+        id: Date.now(),
         user: 'You',
-        text: message,
+        text: message.trim(),
         time: 'Just now',
         type: 'normal',
         isMe: true,
+        userId: userId,
       };
-      setMessages([...messages, newMessage]);
+      
+      setMessages(prev => [...prev, newMessage]);
       setMessage('');
+      
+      // Auto scroll to bottom
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
     }
   };
 
@@ -74,11 +150,13 @@ export default function ChatScreen() {
 
       {/* Messages List */}
       <FlatList
+        ref={flatListRef}
         data={messages}
         renderItem={renderMessage}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.messageList}
         showsVerticalScrollIndicator={false}
+        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
       />
 
       {/* Input Area */}
