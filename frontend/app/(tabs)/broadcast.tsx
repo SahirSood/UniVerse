@@ -17,10 +17,10 @@ export default function BroadcastScreen() {
   const [selectedType, setSelectedType] = useState<BroadcastType | null>(null);
 
   const quickActions: QuickAction[] = [
-    { id: 'coffee', title: 'Coffee Run', icon: 'cafe', color: '#CC0633' },
+    { id: 'coffee', title: 'Coffee Run', icon: 'cafe', color: '#403838ff' },
     { id: 'help', title: 'Need Help', icon: 'help-circle', color: '#CC0633' },
-    { id: 'study', title: 'Study Buddy', icon: 'book', color: '#CC0633' },
-    { id: 'lost-found', title: 'Lost & Found', icon: 'search', color: '#CC0633' },
+    { id: 'study', title: 'Study Buddy', icon: 'book', color: '#5d00ffff' },
+    { id: 'lost-found', title: 'Lost & Found', icon: 'search', color: '#ffa200ff' },
     { id: 'rideshare', title: 'Ride Share', icon: 'car', color: '#3B82F6' },
     { id: 'food-delivery', title: 'Food Delivery', icon: 'restaurant', color: '#10B981' },
   ];
@@ -65,13 +65,11 @@ export default function BroadcastScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Broadcast Message</Text>
-          <Text style={styles.subtitle}>Send a message to everyone within 10 meters</Text>
+          <Text style={styles.title}>Broadcast</Text>
         </View>
 
         {/* Quick Actions */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.quickActionsGrid}>
             {quickActions.map((action) => (
               <TouchableOpacity
