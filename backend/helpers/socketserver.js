@@ -12,14 +12,14 @@ function SocketServerInit(server, port) {
     
     try {
         io = new SocketIOServer(server, {
-        // cors: {
-        //     origin: [process.env.CLIENT_URL],
-        //     credentials: true,
-        // }
+            cors: {
+                origin: "*", // Allow all origins in development
+                methods: ["GET", "POST"]
+            }
         });
         console.log("Socket server succesfully initialized");
     } catch(err) {
-        console.err("Failed to initialze socket server.")
+        console.error("Failed to initialize socket server.")
         return {
             success: false,
             message: "Socket server failed to initialize"
@@ -37,20 +37,36 @@ function SocketServerInit(server, port) {
                 socket.userId = userId;
                 socket.room = room;
                 socket.join(room);
-                console.log(`User ${userId} joined room: ${roomName}`);
-                socket.emit("joinedRoom", { room: roomName });
+                console.log(`User ${userId} joined room: ${room}`);
+                socket.emit("joinedRoom", { room: room });
             } else {
-                console.warn(`INVALID: User ${socket.id} joined room: ${roomName}`)
+                console.warn(`INVALID: User ${socket.id} tried to join room: ${room}`)
                 socket.emit("error", { message: "Invalid room name" });
+            }
+        });
+
+        socket.on("leaveRoom", (userId, room) => {
+            if (LocationIds[room]) {
+                // Remove user from room array
+                if (rooms[room]) {
+                    rooms[room] = rooms[room].filter((id) => id !== userId);
+                }
+                // Leave the socket.io room
+                socket.leave(room);
+                console.log(`User ${userId} left room: ${room}`);
+                socket.emit("leftRoom", { room: room });
+            } else {
+                console.warn(`INVALID: User ${socket.id} tried to leave room: ${room}`)
             }
         });
 
         socket.on("sendMessage", (userId, room, message) => {
             if (LocationIds[room]) {
-                rooms[room].push(userId)
-                socket.broadcast.emit("recieveMessage", message);
+                // Broadcast message to all users in the room except the sender
+                socket.broadcast.to(room).emit("recieveMessage", message);
+                console.log(`Message sent in room ${room} by user ${userId}`);
             } else {
-                console.warn(`INVALID: User ${socket.id} joined room: ${roomName}`)
+                console.warn(`INVALID: User ${socket.id} tried to send message to room: ${room}`)
                 socket.emit("error", { message: "Invalid room name" });
             } 
         });
