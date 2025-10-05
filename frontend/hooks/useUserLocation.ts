@@ -17,8 +17,8 @@ type UseUserLocationOpts = {
 
 export function useUserLocation(opts: UseUserLocationOpts = {}) {
   const {
-    distanceInterval = 15,
-    timeInterval = 5000,
+    distanceInterval = 1,
+    timeInterval = 1000,
     accuracy = Location.Accuracy.Balanced,
   } = opts;
 
