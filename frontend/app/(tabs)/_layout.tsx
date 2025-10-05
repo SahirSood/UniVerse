@@ -72,6 +72,7 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen name="location-debug" options={{ title: 'Location' }} />
     </Tabs>
   );
 }
