@@ -36,14 +36,27 @@ export default function TestScreen() {
         {/* Show user location marker */}
         {coords && (
         <Circle
-        center={{
+            center={{
             latitude: coords.latitude,
             longitude: coords.longitude,
-        }}
-        radius={50} // 50 meters
-        fillColor="rgba(0, 122, 255, 0.3)"
-        strokeColor="rgba(0, 122, 255, 0.8)"
-        strokeWidth={2}
+            }}
+            radius={coords.accuracy ?? 20}
+            fillColor="rgba(0, 122, 255, 0.3)"
+            strokeColor="rgba(0, 122, 255, 0.8)"
+            strokeWidth={2}
+        />
+        )}
+        {/* Small dot in center */}
+        {coords && (
+        <Circle
+            center={{
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+            }}
+            radius={3}
+            fillColor="#007AFF"
+            strokeColor="white"
+            strokeWidth={2}
         />
         )}
       </MapView>
