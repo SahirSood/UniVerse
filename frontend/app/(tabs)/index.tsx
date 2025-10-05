@@ -1,11 +1,8 @@
-import React, { useRef, useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { SafeAreaView, View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { io, Socket } from 'socket.io-client';
-import { useUserId } from '../../hooks/useUserId';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type BroadcastType = 'coffee' | 'help' | 'study' | 'lost' | 'rideshare' | 'food';
+type BroadcastType = 'coffee' | 'help' | 'study' | 'lost-found' | 'rideshare' | 'food-delivery';
 
 type Broadcast = {
   id: string;
@@ -34,156 +31,50 @@ export default function HomeScreen() {
     'study': true,
     'lost-found': true,
     'rideshare': false,
-    'food': false,
+    'food-delivery': false,
   };
 
-  const broadcastTypes: BroadcastPreference[] = [
-    { id: 'coffee', title: 'Coffee Runs', icon: 'cafe', color: '#CC0633' },
-    { id: 'help', title: 'Help Requests', icon: 'help-circle', color: '#CC0633' },
-    { id: 'study', title: 'Study Groups', icon: 'book', color: '#CC0633' },
-    { id: 'lost', title: 'Lost & Found', icon: 'search', color: '#CC0633' },
-    { id: 'rideshare', title: 'Ride Sharing', icon: 'car', color: '#3B82F6' },
-    { id: 'food', title: 'Food Delivery', icon: 'restaurant', color: '#10B981' },
-  ];
-  const { userId, loading } = useUserId();
-  const [isSocketConnected, setIsSocketConnected] = useState(false);
-  const [hasSynced, setHasSynced] = useState(false);
-
-  // Initialize socket connection
-  useEffect(() => {
-    if (!socketRef.current) {
-      socketRef.current = io(SOCKET_URL);
-      
-      socketRef.current.on('connect', () => {
-        console.log('Connected to socket server');
-        setIsSocketConnected(true);
-      });
-
-      socketRef.current.on('disconnect', () => {
-        console.log('Disconnected from socket server');
-        setIsSocketConnected(false);
-      });
-
-      socketRef.current.on('joinedRoom', (data) => {
-        console.log('Joined room:', data.room);
-      });
-
-      socketRef.current.on('leftRoom', (data) => {
-        console.log('Left room:', data.room);
-      });
-    }
-
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
-    };
-  }, []);
-
-  // Load saved preferences on component mount
-  useEffect(() => {
-    loadPreferences();
-  }, []);
-
-  // Sync preferences with socket when userId changes or socket connects
-  useEffect(() => {
-    if (userId && socketRef.current && isSocketConnected && !hasSynced) {
-      // Only sync once on initial connection
-      syncPreferencesWithSocket();
-      setHasSynced(true);
-    }
-  }, [userId, isSocketConnected, hasSynced]);
-
-  const loadPreferences = async () => {
-    try {
-      const savedPreferences = await AsyncStorage.getItem('roomPreferences');
-      if (savedPreferences) {
-        const parsed = JSON.parse(savedPreferences);
-        setBroadcastPreferences(prev => 
-          Object.keys(prev).reduce((acc, key) => {
-            acc[key as BroadcastType] = parsed[key] || false;
-            return acc;
-          }, {} as Record<BroadcastType, boolean>)
-        );
-      }
-    } catch (error) {
-      console.error('Error loading preferences:', error);
-    }
-  };
-
-  const savePreferences = async (preferences: Record<BroadcastType, boolean>) => {
-    try {
-      await AsyncStorage.setItem('roomPreferences', JSON.stringify(preferences));
-    } catch (error) {
-      console.error('Error saving preferences:', error);
-    }
-  };
-
-  const syncPreferencesWithSocket = () => {
-    if (!socketRef.current || !userId || !isSocketConnected) return;
-
-    Object.entries(broadcastPreferences).forEach(([room, enabled]) => {
-      if (enabled) {
-        socketRef.current!.emit('joinRoom', userId, room);
-      } else {
-        socketRef.current!.emit('leaveRoom', userId, room);
-      }
-    });
-  };
-
-  const toggleBroadcastPreference = async (type: BroadcastType) => {
-    const newValue = !broadcastPreferences[type];
-    
-    const updatedPreferences = {
-      ...broadcastPreferences,
-      [type]: newValue
-    };
-    
-    setBroadcastPreferences(updatedPreferences);
-    
-    // Save preferences to AsyncStorage
-    await savePreferences(updatedPreferences);
-  
-    if (socketRef.current && userId && isSocketConnected) {
-      if (newValue) {
-        // Join room when toggled ON
-        socketRef.current.emit('joinRoom', userId, type);
-        console.log(`Joined room: ${type}`);
-      } else {
-        // Leave room when toggled OFF
-        socketRef.current.emit('leaveRoom', userId, type);
-        console.log(`Left room: ${type}`);
-      }
-    } else if (!isSocketConnected) {
-      console.log('Socket not connected, room preference saved but not synced yet');
-    }
-  };
-  const menuItems = [
-    { id: 1, title: 'Edit Profile', icon: 'person-outline' as const },
-    { id: 2, title: 'Settings', icon: 'settings-outline' as const },
-    { id: 3, title: 'Privacy', icon: 'lock-closed-outline' as const },
-    { id: 4, title: 'Notifications', icon: 'notifications-outline' as const },
-    { id: 5, title: 'Help & Support', icon: 'help-circle-outline' as const },
+  // Example incoming broadcasts
+  const allIncoming: Broadcast[] = [
+    { id: 'b1', type: 'coffee', title: 'Coffee Run', message: 'Grabbing iced lattes. Want one?', from: 'Sarah M.', time: '2m', location: 'Tim Hortons - Main' },
+    { id: 'b2', type: 'help', title: 'Need Calculator', message: 'Forgot calculator for MATH 101', from: 'Mike T.', time: '5m', location: 'Library 2F' },
+    { id: 'b3', type: 'study', title: 'Finals Study Group', message: 'CS201 study in 10 mins', from: 'Emma L.', time: '8m', location: 'Student Center' },
+    { id: 'b4', type: 'lost-found', title: 'Lost Water Bottle', message: 'Blue Hydroflask near gym', from: 'Alex P.', time: '12m', location: 'Gym Entrance' },
   ];
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Profile Header */}
-        <View style={styles.header}>
-          <View style={styles.avatarContainer}>
-            <Text style={styles.avatarText}>JD</Text>
+  const [incoming, setIncoming] = useState<Broadcast[]>(allIncoming);
+  const [commitments, setCommitments] = useState<Broadcast[]>([
+    // Example pre-committed item
+    { id: 'c1', type: 'help', title: 'Lab Partner', message: 'Helping with lab wiring', from: 'You', time: 'Today', location: 'ENG Building' },
+  ]);
+
+  const filteredIncoming = useMemo(
+    () => incoming.filter(b => preferences[b.type]),
+    [incoming]
+  );
+
+  const acceptBroadcast = (id: string) => {
+    const b = incoming.find(x => x.id === id);
+    if (!b) return;
+    setIncoming(prev => prev.filter(x => x.id !== id));
+    setCommitments(prev => [{ ...b, from: 'You', time: 'Now' }, ...prev]);
+  };
+
+  const declineBroadcast = (id: string) => {
+    setIncoming(prev => prev.filter(x => x.id !== id));
+  };
+
+  const BroadcastCard = ({ b }: { b: Broadcast }) => {
+    const meta = typeMeta[b.type];
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={[styles.iconWrap, { backgroundColor: `${meta.color}14` }]}>
+            <Ionicons name={meta.icon as any} size={18} color={meta.color} />
           </View>
           <Text style={styles.cardTitle}>{b.title}</Text>
           <View style={styles.spacer} />
           <Text style={styles.time}>{b.time}</Text>
-          <View style={styles.connectionStatus}>
-            <View style={[styles.statusDot, { backgroundColor: isSocketConnected ? '#10B981' : '#EF4444' }]} />
-            <Text style={styles.statusText}>
-              {isSocketConnected ? 'Connected' : 'Disconnected'}
-            </Text>
-          </View>
         </View>
         <Text style={styles.message}>{b.message}</Text>
         <View style={styles.metaRow}>
@@ -274,21 +165,4 @@ const styles = StyleSheet.create({
   acceptText: { color: '#fff', fontWeight: '700' },
 
   emptyText: { fontSize: 14, color: '#6B7280', textAlign: 'center', paddingVertical: 8 },
-  // Connection Status Styles
-  connectionStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    gap: 6,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  statusText: {
-    fontSize: 12,
-    color: '#666',
-    fontWeight: '500',
-  },
 });
