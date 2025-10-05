@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { io, Socket } from 'socket.io-client';
+import { useUserId } from '../../hooks/useUserId';
 
-type BroadcastType = 'coffee' | 'help' | 'study' | 'lost-found' | 'rideshare' | 'food-delivery';
+type BroadcastType = 'coffee' | 'help' | 'study' | 'lost' | 'rideshare' | 'food';
 
 interface BroadcastPreference {
   id: BroadcastType;
@@ -12,7 +14,12 @@ interface BroadcastPreference {
   color: string;
 }
 
+const SOCKET_URL = 'http://172.16.203.31:3000';
+const API_URL = 'http://172.16.203.31:3000';
 export default function ProfileScreen() {
+  const socketRef = useRef<Socket | null>(null);
+
+  
   const user = {
     name: 'John Doe',
     major: 'Computer Science Major',
@@ -23,30 +30,42 @@ export default function ProfileScreen() {
 
   // Broadcast preferences state
   const [broadcastPreferences, setBroadcastPreferences] = useState<Record<BroadcastType, boolean>>({
-    'coffee': true,
-    'help': true,
-    'study': true,
-    'lost-found': true,
+    'coffee': false,
+    'help': false,
+    'study': false,
+    'lost': false,
     'rideshare': false,
-    'food-delivery': false,
+    'food': false,
   });
 
   const broadcastTypes: BroadcastPreference[] = [
     { id: 'coffee', title: 'Coffee Runs', icon: 'cafe', color: '#CC0633' },
     { id: 'help', title: 'Help Requests', icon: 'help-circle', color: '#CC0633' },
     { id: 'study', title: 'Study Groups', icon: 'book', color: '#CC0633' },
-    { id: 'lost-found', title: 'Lost & Found', icon: 'search', color: '#CC0633' },
+    { id: 'lost', title: 'Lost & Found', icon: 'search', color: '#CC0633' },
     { id: 'rideshare', title: 'Ride Sharing', icon: 'car', color: '#3B82F6' },
-    { id: 'food-delivery', title: 'Food Delivery', icon: 'restaurant', color: '#10B981' },
+    { id: 'food', title: 'Food Delivery', icon: 'restaurant', color: '#10B981' },
   ];
+  const { userId, loading } = useUserId();
 
   const toggleBroadcastPreference = (type: BroadcastType) => {
+    const newValue = !broadcastPreferences[type];
+    
     setBroadcastPreferences(prev => ({
       ...prev,
-      [type]: !prev[type]
+      [type]: newValue
     }));
+  
+    if (socketRef.current && userId) {
+      if (newValue) {
+        // Join room when toggled ON
+        socketRef.current.emit('joinRoom', userId, type);
+      } else {
+        // Leave room when toggled OFF
+        socketRef.current.emit('leaveRoom', userId, type);
+      }
+    }
   };
-
   const menuItems = [
     { id: 1, title: 'Edit Profile', icon: 'person-outline' as const },
     { id: 2, title: 'Settings', icon: 'settings-outline' as const },
