@@ -16,19 +16,17 @@ export default function LocationDebug() {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Location Debug</Text>
-      <Text>Status: {status}</Text>
+      <Text style={styles.text}>Status: {status}</Text>
       {error ? <Text style={styles.err}>Error: {error}</Text> : null}
-
       {coords ? (
         <View style={styles.card}>
-          <Text>lat: {coords.latitude.toFixed(6)}</Text>
-          <Text>lon: {coords.longitude.toFixed(6)}</Text>
-          {coords.accuracy != null && <Text>accuracy: ~{Math.round(coords.accuracy)} m</Text>}
+          <Text style={styles.text}>lat: {coords.latitude.toFixed(6)}</Text>
+          <Text style={styles.text}>lon: {coords.longitude.toFixed(6)}</Text>
+          {coords.accuracy != null && <Text style={styles.text}>accuracy: ~{Math.round(coords.accuracy)} m</Text>}
         </View>
       ) : (
-        <Text>Waiting for GPS…</Text>
+        <Text style={styles.text}>Waiting for GPS…</Text>
       )}
-
       <View style={styles.row}>
         <Button title="Start" onPress={start} />
         <View style={{ width: 12 }} />
@@ -44,4 +42,5 @@ const styles = StyleSheet.create({
   err: { color: 'red' },
   card: { padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#ddd', gap: 6 },
   row: { flexDirection: 'row', marginTop: 12 },
+  text: { color: 'white' },
 });
