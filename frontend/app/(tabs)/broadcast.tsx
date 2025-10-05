@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-type BroadcastType = 'coffee' | 'help' | 'study' | 'lost-found';
+type BroadcastType = 'coffee' | 'help' | 'study' | 'lost-found' | 'rideshare' | 'food-delivery';
 
 interface QuickAction {
   id: BroadcastType;
@@ -21,6 +21,8 @@ export default function BroadcastScreen() {
     { id: 'help', title: 'Need Help', icon: 'help-circle', color: '#CC0633' },
     { id: 'study', title: 'Study Buddy', icon: 'book', color: '#CC0633' },
     { id: 'lost-found', title: 'Lost & Found', icon: 'search', color: '#CC0633' },
+    { id: 'rideshare', title: 'Ride Share', icon: 'car', color: '#3B82F6' },
+    { id: 'food-delivery', title: 'Food Delivery', icon: 'restaurant', color: '#10B981' },
   ];
 
   const handleQuickAction = (type: BroadcastType) => {
@@ -38,6 +40,12 @@ export default function BroadcastScreen() {
         break;
       case 'lost-found':
         setCustomMessage('Lost my ');
+        break;
+      case 'rideshare':
+        setCustomMessage('Looking for a ride to ');
+        break;
+      case 'food-delivery':
+        setCustomMessage('Ordering food from ');
         break;
     }
   };
@@ -75,7 +83,7 @@ export default function BroadcastScreen() {
                 onPress={() => handleQuickAction(action.id)}
               >
                 <View style={[styles.iconContainer, { backgroundColor: `${action.color}15` }]}>
-                  <Ionicons name={action.icon} size={28} color={action.color} />
+                  <Ionicons name={action.icon} size={24} color={action.color} />
                 </View>
                 <Text style={styles.quickActionTitle}>{action.title}</Text>
               </TouchableOpacity>
@@ -157,23 +165,23 @@ const styles = StyleSheet.create({
   },
   quickActionCard: {
     flex: 1,
-    minWidth: '45%',
+    minWidth: '30%',
     backgroundColor: '#FFF5F7',
     borderWidth: 2,
     borderColor: '#FFE0E6',
     borderRadius: 16,
-    padding: 16,
+    padding: 12,
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   quickActionCardSelected: {
     backgroundColor: '#FFE0E6',
     borderColor: '#CC0633',
   },
   iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 4,

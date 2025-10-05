@@ -1,120 +1,144 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-type BroadcastType = 'coffee' | 'help' | 'study' | 'lost-found';
+type BroadcastType = 'coffee' | 'help' | 'study' | 'lost-found' | 'rideshare' | 'food-delivery';
 
-interface QuickAction {
+interface BroadcastPreference {
   id: BroadcastType;
   title: string;
   icon: keyof typeof Ionicons.glyphMap;
   color: string;
 }
 
-export default function BroadcastScreen() {
-  const [customMessage, setCustomMessage] = useState('');
-  const [selectedType, setSelectedType] = useState<BroadcastType | null>(null);
+export default function ProfileScreen() {
+  const user = {
+    name: 'John Doe',
+    major: 'Computer Science Major',
+    karma: 247,
+    helpsGiven: 42,
+    coffeeRuns: 18,
+  };
 
-  const quickActions: QuickAction[] = [
-    { id: 'coffee', title: 'Coffee Run', icon: 'cafe', color: '#CC0633' },
-    { id: 'help', title: 'Need Help', icon: 'help-circle', color: '#CC0633' },
-    { id: 'study', title: 'Study Buddy', icon: 'book', color: '#CC0633' },
+  // Broadcast preferences state
+  const [broadcastPreferences, setBroadcastPreferences] = useState<Record<BroadcastType, boolean>>({
+    'coffee': true,
+    'help': true,
+    'study': true,
+    'lost-found': true,
+    'rideshare': false,
+    'food-delivery': false,
+  });
+
+  const broadcastTypes: BroadcastPreference[] = [
+    { id: 'coffee', title: 'Coffee Runs', icon: 'cafe', color: '#CC0633' },
+    { id: 'help', title: 'Help Requests', icon: 'help-circle', color: '#CC0633' },
+    { id: 'study', title: 'Study Groups', icon: 'book', color: '#CC0633' },
     { id: 'lost-found', title: 'Lost & Found', icon: 'search', color: '#CC0633' },
+    { id: 'rideshare', title: 'Ride Sharing', icon: 'car', color: '#3B82F6' },
+    { id: 'food-delivery', title: 'Food Delivery', icon: 'restaurant', color: '#10B981' },
   ];
 
-  const handleQuickAction = (type: BroadcastType) => {
-    setSelectedType(type);
-    // Pre-fill message based on type
-    switch (type) {
-      case 'coffee':
-        setCustomMessage('Heading to Tim Hortons! Anyone want anything?');
-        break;
-      case 'help':
-        setCustomMessage('Need help with ');
-        break;
-      case 'study':
-        setCustomMessage('Looking for a study buddy for ');
-        break;
-      case 'lost-found':
-        setCustomMessage('Lost my ');
-        break;
-    }
+  const toggleBroadcastPreference = (type: BroadcastType) => {
+    setBroadcastPreferences(prev => ({
+      ...prev,
+      [type]: !prev[type]
+    }));
   };
 
-  const handleBroadcast = () => {
-    if (customMessage.trim()) {
-      Alert.alert(
-        'Message Sent!',
-        `Your message has been broadcast to everyone within 10 meters.`,
-        [{ text: 'OK', onPress: () => setCustomMessage('') }]
-      );
-    }
-  };
+  const menuItems = [
+    { id: 1, title: 'Edit Profile', icon: 'person-outline' as const },
+    { id: 2, title: 'Settings', icon: 'settings-outline' as const },
+    { id: 3, title: 'Privacy', icon: 'lock-closed-outline' as const },
+    { id: 4, title: 'Notifications', icon: 'notifications-outline' as const },
+    { id: 5, title: 'Help & Support', icon: 'help-circle-outline' as const },
+  ];
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
+        {/* Profile Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Broadcast Message</Text>
-          <Text style={styles.subtitle}>Send a message to everyone within 10 meters</Text>
+          <View style={styles.avatarContainer}>
+            <Text style={styles.avatarText}>JD</Text>
+          </View>
+          <Text style={styles.name}>{user.name}</Text>
+          <Text style={styles.major}>{user.major}</Text>
         </View>
 
-        {/* Quick Actions */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <View style={styles.quickActionsGrid}>
-            {quickActions.map((action) => (
-              <TouchableOpacity
-                key={action.id}
-                style={[
-                  styles.quickActionCard,
-                  selectedType === action.id && styles.quickActionCardSelected,
-                ]}
-                onPress={() => handleQuickAction(action.id)}
-              >
-                <View style={[styles.iconContainer, { backgroundColor: `${action.color}15` }]}>
-                  <Ionicons name={action.icon} size={28} color={action.color} />
+        {/* Karma Section */}
+        <View style={styles.karmaCard}>
+          <View style={styles.karmaHeader}>
+            <Ionicons name="star" size={24} color="#CC0633" />
+            <Text style={styles.karmaLabel}>Karma Points</Text>
+          </View>
+          <Text style={styles.karmaValue}>{user.karma}</Text>
+          <Text style={styles.karmaSubtext}>Keep helping others to earn more!</Text>
+        </View>
+
+        {/* Stats Grid */}
+        <View style={styles.statsGrid}>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{user.helpsGiven}</Text>
+            <Text style={styles.statLabel}>Helps Given</Text>
+            <Ionicons name="hand-left" size={20} color="#CC0633" style={styles.statIcon} />
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{user.coffeeRuns}</Text>
+            <Text style={styles.statLabel}>Coffee Runs</Text>
+            <Ionicons name="cafe" size={20} color="#CC0633" style={styles.statIcon} />
+          </View>
+        </View>
+
+        {/* Broadcast Preferences */}
+        <View style={styles.preferencesSection}>
+          <Text style={styles.preferencesTitle}>Broadcast Alerts</Text>
+          <Text style={styles.preferencesSubtitle}>Choose which broadcasts you want to receive alerts for</Text>
+          
+          <View style={styles.preferencesList}>
+            {broadcastTypes.map((type) => (
+              <View key={type.id} style={styles.preferenceItem}>
+                <View style={styles.preferenceLeft}>
+                  <View style={[styles.preferenceIconContainer, { backgroundColor: `${type.color}15` }]}>
+                    <Ionicons name={type.icon} size={20} color={type.color} />
+                  </View>
+                  <Text style={styles.preferenceText}>{type.title}</Text>
                 </View>
-                <Text style={styles.quickActionTitle}>{action.title}</Text>
-              </TouchableOpacity>
+                <Switch
+                  value={broadcastPreferences[type.id]}
+                  onValueChange={() => toggleBroadcastPreference(type.id)}
+                  trackColor={{ false: '#E5E7EB', true: `${type.color}40` }}
+                  thumbColor={broadcastPreferences[type.id] ? type.color : '#9CA3AF'}
+                />
+              </View>
             ))}
           </View>
         </View>
 
-        {/* Custom Message */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Custom Message</Text>
-          <TextInput
-            style={styles.textArea}
-            placeholder="Type your broadcast message..."
-            placeholderTextColor="#9CA3AF"
-            multiline
-            numberOfLines={6}
-            value={customMessage}
-            onChangeText={setCustomMessage}
-            textAlignVertical="top"
-          />
+        {/* Menu Items */}
+        <View style={styles.menuSection}>
+          {menuItems.map((item) => (
+            <TouchableOpacity key={item.id} style={styles.menuItem}>
+              <View style={styles.menuItemLeft}>
+                <View style={styles.menuIconContainer}>
+                  <Ionicons name={item.icon} size={20} color="#CC0633" />
+                </View>
+                <Text style={styles.menuItemText}>{item.title}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          ))}
         </View>
 
-        {/* Broadcast Info */}
-        <View style={styles.infoBox}>
-          <Ionicons name="information-circle" size={20} color="#CC0633" />
-          <Text style={styles.infoText}>
-            Messages expire after 15 minutes and are only visible to nearby users
-          </Text>
-        </View>
-
-        {/* Send Button */}
-        <TouchableOpacity
-          style={[styles.broadcastButton, !customMessage.trim() && styles.broadcastButtonDisabled]}
-          onPress={handleBroadcast}
-          disabled={!customMessage.trim()}
-        >
-          <Ionicons name="radio" size={20} color="#FFFFFF" />
-          <Text style={styles.broadcastButtonText}>Broadcast to Nearby Users</Text>
+        {/* Logout Button */}
+        <TouchableOpacity style={styles.logoutButton}>
+          <Ionicons name="log-out-outline" size={20} color="#CC0633" />
+          <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
+
+        {/* Version Info */}
+        <Text style={styles.versionText}>Version 1.0.0</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -129,100 +153,105 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#2D2D2D',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#666666',
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#2D2D2D',
-    marginBottom: 12,
-  },
-  quickActionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  quickActionCard: {
-    flex: 1,
-    minWidth: '45%',
-    backgroundColor: '#FFF5F7',
-    borderWidth: 2,
-    borderColor: '#FFE0E6',
-    borderRadius: 16,
-    padding: 16,
     alignItems: 'center',
-    gap: 8,
+    marginBottom: 24,
+    paddingTop: 16,
   },
-  quickActionCardSelected: {
-    backgroundColor: '#FFE0E6',
-    borderColor: '#CC0633',
-  },
-  iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  avatarContainer: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: '#CC0633',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 4,
-  },
-  quickActionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#2D2D2D',
-    textAlign: 'center',
-  },
-  textArea: {
-    backgroundColor: '#F9FAFB',
-    borderWidth: 1,
-    borderColor: '#FFE0E6',
-    borderRadius: 16,
-    padding: 16,
-    fontSize: 15,
-    color: '#2D2D2D',
-    minHeight: 120,
-  },
-  infoBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF5F7',
-    padding: 12,
-    borderRadius: 12,
-    gap: 8,
     marginBottom: 16,
   },
-  infoText: {
-    flex: 1,
+  avatarText: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  name: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#2D2D2D',
+  },
+  major: {
+    fontSize: 13,
+    color: '#666',
+    marginTop: 4,
+  },
+  karmaCard: {
+    backgroundColor: '#fff6f6',
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#fdeeee',
+    marginBottom: 16,
+  },
+  karmaHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  karmaLabel: { fontSize: 14, fontWeight: '600', color: '#444' },
+  karmaValue: { fontSize: 26, fontWeight: '800', color: '#CC0633', marginTop: 8 },
+  karmaSubtext: { color: '#666', marginTop: 4 },
+  statsGrid: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginBottom: 16 },
+  statCard: { flex: 1, backgroundColor: '#f6f6f6', padding: 12, borderRadius: 12, alignItems: 'center' },
+  statValue: { fontSize: 22, fontWeight: '800', color: '#2D2D2D' },
+  statLabel: { fontSize: 12, color: '#666', marginTop: 6 },
+  statIcon: { marginTop: 8 },
+  menuSection: { marginTop: 8 },
+  menuItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 12, borderWidth: 1, borderColor: '#f3eded', borderRadius: 10, marginTop: 8, backgroundColor: '#fff' },
+  menuItemLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  menuIconContainer: { width: 38, height: 38, borderRadius: 10, backgroundColor: '#fff0f1', alignItems: 'center', justifyContent: 'center' },
+  menuItemText: { fontSize: 15, color: '#2D2D2D' },
+  logoutButton: { marginTop: 18, flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#fdeeee', backgroundColor: '#fff' },
+  logoutText: { color: '#CC0633', fontWeight: '700' },
+  versionText: { marginTop: 12, color: '#999', textAlign: 'center' },
+  // Broadcast Preferences Styles
+  preferencesSection: {
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  preferencesTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#2D2D2D',
+    marginBottom: 4,
+  },
+  preferencesSubtitle: {
     fontSize: 13,
     color: '#666666',
+    marginBottom: 16,
   },
-  broadcastButton: {
-    backgroundColor: '#CC0633',
+  preferencesList: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+    overflow: 'hidden',
+  },
+  preferenceItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  preferenceLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
+  },
+  preferenceIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
-    padding: 16,
-    borderRadius: 16,
-    gap: 8,
+    alignItems: 'center',
   },
-  broadcastButtonDisabled: {
-    backgroundColor: '#D1D5DB',
-  },
-  broadcastButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
+  preferenceText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#2D2D2D',
   },
 });
