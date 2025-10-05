@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { io, Socket } from 'socket.io-client';
 import { useUserLocation } from '../../hooks/useUserLocation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useUserId } from '../../hooks/useUserId';
 
 interface Message {
   id: number;
@@ -74,7 +76,7 @@ export default function ChatScreen() {
   const [locationData, setLocationData] = useState<LocationData | null>(null);
   
   // TODO: Replace with actual user ID (from auth system)
-  const userId = useRef('user_' + Math.random().toString(36).substr(2, 9)).current;
+  const { userId, loading } = useUserId();
 
   // Start location tracking
   useEffect(() => {

@@ -1,8 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useRef, useMemo, useState } from 'react';
 import { SafeAreaView, View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { io, Socket } from 'socket.io-client';
+import { useUserId } from '../../hooks/useUserId';
 
-type BroadcastType = 'coffee' | 'help' | 'study' | 'lost-found' | 'rideshare' | 'food-delivery';
+type BroadcastType = 'coffee' | 'help' | 'study' | 'lost' | 'rideshare' | 'food';
 
 type Broadcast = {
   id: string;
@@ -31,46 +33,52 @@ export default function HomeScreen() {
     'study': true,
     'lost-found': true,
     'rideshare': false,
-    'food-delivery': false,
+    'food': false,
   };
 
-  // Example incoming broadcasts
-  const allIncoming: Broadcast[] = [
-    { id: 'b1', type: 'coffee', title: 'Coffee Run', message: 'Grabbing iced lattes. Want one?', from: 'Sarah M.', time: '2m', location: 'Tim Hortons - Main' },
-    { id: 'b2', type: 'help', title: 'Need Calculator', message: 'Forgot calculator for MATH 101', from: 'Mike T.', time: '5m', location: 'Library 2F' },
-    { id: 'b3', type: 'study', title: 'Finals Study Group', message: 'CS201 study in 10 mins', from: 'Emma L.', time: '8m', location: 'Student Center' },
-    { id: 'b4', type: 'lost-found', title: 'Lost Water Bottle', message: 'Blue Hydroflask near gym', from: 'Alex P.', time: '12m', location: 'Gym Entrance' },
+  const broadcastTypes: BroadcastPreference[] = [
+    { id: 'coffee', title: 'Coffee Runs', icon: 'cafe', color: '#CC0633' },
+    { id: 'help', title: 'Help Requests', icon: 'help-circle', color: '#CC0633' },
+    { id: 'study', title: 'Study Groups', icon: 'book', color: '#CC0633' },
+    { id: 'lost', title: 'Lost & Found', icon: 'search', color: '#CC0633' },
+    { id: 'rideshare', title: 'Ride Sharing', icon: 'car', color: '#3B82F6' },
+    { id: 'food', title: 'Food Delivery', icon: 'restaurant', color: '#10B981' },
+  ];
+  const { userId, loading } = useUserId();
+
+  const toggleBroadcastPreference = (type: BroadcastType) => {
+    const newValue = !broadcastPreferences[type];
+    
+    setBroadcastPreferences(prev => ({
+      ...prev,
+      [type]: newValue
+    }));
+  
+    if (socketRef.current && userId) {
+      if (newValue) {
+        // Join room when toggled ON
+        socketRef.current.emit('joinRoom', userId, type);
+      } else {
+        // Leave room when toggled OFF
+        socketRef.current.emit('leaveRoom', userId, type);
+      }
+    }
+  };
+  const menuItems = [
+    { id: 1, title: 'Edit Profile', icon: 'person-outline' as const },
+    { id: 2, title: 'Settings', icon: 'settings-outline' as const },
+    { id: 3, title: 'Privacy', icon: 'lock-closed-outline' as const },
+    { id: 4, title: 'Notifications', icon: 'notifications-outline' as const },
+    { id: 5, title: 'Help & Support', icon: 'help-circle-outline' as const },
   ];
 
-  const [incoming, setIncoming] = useState<Broadcast[]>(allIncoming);
-  const [commitments, setCommitments] = useState<Broadcast[]>([
-    // Example pre-committed item
-    { id: 'c1', type: 'help', title: 'Lab Partner', message: 'Helping with lab wiring', from: 'You', time: 'Today', location: 'ENG Building' },
-  ]);
-
-  const filteredIncoming = useMemo(
-    () => incoming.filter(b => preferences[b.type]),
-    [incoming]
-  );
-
-  const acceptBroadcast = (id: string) => {
-    const b = incoming.find(x => x.id === id);
-    if (!b) return;
-    setIncoming(prev => prev.filter(x => x.id !== id));
-    setCommitments(prev => [{ ...b, from: 'You', time: 'Now' }, ...prev]);
-  };
-
-  const declineBroadcast = (id: string) => {
-    setIncoming(prev => prev.filter(x => x.id !== id));
-  };
-
-  const BroadcastCard = ({ b }: { b: Broadcast }) => {
-    const meta = typeMeta[b.type];
-    return (
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <View style={[styles.iconWrap, { backgroundColor: `${meta.color}14` }]}>
-            <Ionicons name={meta.icon as any} size={18} color={meta.color} />
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Profile Header */}
+        <View style={styles.header}>
+          <View style={styles.avatarContainer}>
+            <Text style={styles.avatarText}>JD</Text>
           </View>
           <Text style={styles.cardTitle}>{b.title}</Text>
           <View style={styles.spacer} />
