@@ -49,10 +49,10 @@ export default function BroadcastScreen() {
   }, []);
 
   const quickActions: QuickAction[] = [
-    { id: 'coffee', title: 'Coffee Run', icon: 'cafe', color: '#403838ff' },
+    { id: 'coffee', title: 'Coffee Run', icon: 'cafe', color: '#403838' },
     { id: 'help', title: 'Need Help', icon: 'help-circle', color: '#CC0633' },
-    { id: 'study', title: 'Study Buddy', icon: 'book', color: '#5d00ffff' },
-    { id: 'lost-found', title: 'Lost & Found', icon: 'search', color: '#ffa200ff' },
+    { id: 'study', title: 'Study Buddy', icon: 'book', color: '#5d00ff' },
+    { id: 'lost-found', title: 'Lost & Found', icon: 'search', color: '#ffa200' },
     { id: 'rideshare', title: 'Ride Share', icon: 'car', color: '#3B82F6' },
     { id: 'food-delivery', title: 'Food Delivery', icon: 'restaurant', color: '#10B981' },
   ];

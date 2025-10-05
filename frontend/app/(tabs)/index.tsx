@@ -229,21 +229,25 @@ export default function HomeScreen() {
             })}
           </View>
         </View>
-        <View style={styles.list}>
-          {filteredIncoming.length === 0 ? (
-            <Text style={styles.emptyText}>No new broadcasts</Text>
-          ) : (
-            filteredIncoming.map(b => <BroadcastCard key={b.id} b={b} />)
-          )}
+        <View style={styles.section}>
+          <View style={styles.list}>
+            {filteredIncoming.length === 0 ? (
+              <Text style={styles.emptyText}>No new broadcasts</Text>
+            ) : (
+              filteredIncoming.map(b => <BroadcastCard key={b.id} b={b} />)
+            )}
+          </View>
         </View>
 
-        <Text style={styles.heading}>Your Commitments</Text>
-        <View style={styles.list}>
-          {commitments.length === 0 ? (
-            <Text style={styles.emptyText}>No commitments yet</Text>
-          ) : (
-            commitments.map(b => <CommitmentCard key={b.id} b={b} />)
-          )}
+        <View style={styles.section}>
+          <Text style={styles.commitmentsHeading}>Your Commitments</Text>
+          <View style={styles.list}>
+            {commitments.length === 0 ? (
+              <Text style={styles.emptyText}>No commitments yet</Text>
+            ) : (
+              commitments.map(b => <CommitmentCard key={b.id} b={b} />)
+            )}
+          </View>
         </View>
         <View style={styles.bottomSpacing} />
       </ScrollView>
@@ -335,5 +339,15 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 20,
+  },
+  section: {
+    marginTop: 16,
+  },
+  commitmentsHeading: {
+    fontSize: 18, 
+    fontWeight: '800', 
+    color: '#1F2937', 
+    marginTop: 12,
+    marginBottom: 8,
   },
 });

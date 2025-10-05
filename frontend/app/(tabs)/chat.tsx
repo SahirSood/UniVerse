@@ -207,15 +207,15 @@ export default function ChatScreen() {
     });
 
     // Message event handlers
-    socket.on('recieveMessage', (receivedMessage) => {
+    socket.on('receiveMessage', (receivedMessage) => {
       console.log('Received message:', receivedMessage);
       
       // Add received message to state
       const newMessage: Message = {
         id: Date.now(),
-        user: receivedMessage.user || 'Anonymous',
+        user: 'John Doe',
         text: receivedMessage.text || receivedMessage,
-        time: 'Just now',
+        time: '',
         type: receivedMessage.type || 'normal',
         isMe: false,
       };
@@ -258,7 +258,7 @@ export default function ChatScreen() {
         id: Date.now(),
         user: 'You',
         text: message,
-        time: 'Just now',
+        time: '',
         type: 'normal',
         isMe: true,
       };
@@ -273,7 +273,7 @@ export default function ChatScreen() {
     <View style={[styles.messageBubble, item.isMe && styles.myMessage]}>
       <View style={styles.messageHeader}>
         <Text style={styles.messageUser}>{item.user}</Text>
-        <Text style={styles.messageTime}>{item.time}</Text>
+        {item.time && <Text style={styles.messageTime}>{item.time}</Text>}
       </View>
       <Text style={styles.messageText}>{item.text}</Text>
       {item.type === 'coffee' && !item.isMe && (
@@ -401,7 +401,7 @@ export default function ChatScreen() {
       {/* Input Area */}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={90}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <View style={styles.inputContainer}>
           <TextInput
