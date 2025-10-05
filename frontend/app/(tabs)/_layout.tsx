@@ -64,15 +64,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="broadcast"
-        options={{
-          title: 'Broadcast',
-          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-            <Radio color={color} size={size} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
