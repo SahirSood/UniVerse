@@ -3,7 +3,7 @@
   "features": [
     {
       "type": "Feature",
-      "properties": { "Name": "Dining Commons", "short": "DINING_COMMONS" },
+      "properties": { "name": "Dining Commons", "short": "DINING_COMMONS" },
       "geometry": {
         "coordinates": [
           [
