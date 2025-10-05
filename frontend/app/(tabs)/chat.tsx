@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Keyboard
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { io, Socket } from 'socket.io-client';
+import { useUserLocation } from '../../hooks/useUserLocation';
 
 interface Message {
   id: number;
@@ -13,24 +14,79 @@ interface Message {
   isMe: boolean;
 }
 
+interface LocationData {
+  inside: boolean;
+  polygon: {
+    properties: {
+      name?: string;
+      Name?: string;
+      short: string;
+    };
+  };
+  polygonId: number;
+  distance: number;
+}
+
 // Update this to your backend URL - use your local network IP, not localhost
 // You can find this IP in your Expo output (exp://YOUR_IP:8081)
 const SOCKET_URL = 'http://172.16.203.31:3000';
+const API_URL = 'http://172.16.203.31:3000';
 
 export default function ChatScreen() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
+  const [userCount, setUserCount] = useState(0);
+  
+  // Location and room state
+  const { status, coords, error: locationError, start, stop } = useUserLocation({
+    distanceInterval: 15,
+    timeInterval: 5000,
+  });
+  const [currentRoom, setCurrentRoom] = useState<string | null>(null);
+  const [currentRoomDisplay, setCurrentRoomDisplay] = useState<string>('Finding your location...');
+  const [locationData, setLocationData] = useState<LocationData | null>(null);
   
   // TODO: Replace with actual user ID (from auth system)
   const userId = 'user_' + Math.random().toString(36).substr(2, 9);
-  
-  // TODO: Replace with actual room selection logic
-  // Room must match a key from LocationIds enum in backend (e.g., 'SUB', 'LIBRARY', 'DINING_COMMONS')
-  const currentRoom = 'SUB'; // Using SUB as an example - this should come from location detection
-  const currentRoomDisplay = 'Student Union Building'; // Human-readable name for display
-  const [userCount, setUserCount] = useState(0);
+
+  // Start location tracking
+  useEffect(() => {
+    start();
+    return () => stop();
+  }, []);
+
+  // Fetch nearest location when coordinates change
+  useEffect(() => {
+    if (coords) {
+      fetchNearestLocation(coords.latitude, coords.longitude);
+    }
+  }, [coords]);
+
+  const fetchNearestLocation = async (lat: number, lon: number) => {
+    try {
+      const response = await fetch(`${API_URL}/locations?lat=${lat}&lon=${lon}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch location');
+      }
+      const data: LocationData = await response.json();
+      setLocationData(data);
+      
+      // Extract room ID from the polygon properties
+      const roomId = data.polygon.properties.short;
+      const roomName = data.polygon.properties.name || data.polygon.properties.Name || roomId;
+      
+      setCurrentRoom(roomId);
+      setCurrentRoomDisplay(roomName);
+      
+      console.log('Nearest location:', roomName, '(Room ID:', roomId, ')');
+      console.log('Distance:', data.distance, 'km, Inside:', data.inside);
+    } catch (error) {
+      console.error('Error fetching location:', error);
+      setCurrentRoomDisplay('Location unavailable');
+    }
+  };
 
   useEffect(() => {
     // Initialize socket connection
@@ -48,8 +104,10 @@ export default function ChatScreen() {
       console.log('Connected to server:', socket.id);
       setIsConnected(true);
       
-      // Join the room after connection
-      socket.emit('joinRoom', userId, currentRoom);
+      // Join the room after connection (only if room is determined)
+      if (currentRoom) {
+        socket.emit('joinRoom', userId, currentRoom);
+      }
     });
 
     socket.on('disconnect', () => {
@@ -97,7 +155,20 @@ export default function ChatScreen() {
     };
   }, []);
 
+  // Join room when both connection and room are ready
+  useEffect(() => {
+    if (isConnected && currentRoom && socketRef.current) {
+      console.log('Joining room:', currentRoom);
+      socketRef.current.emit('joinRoom', userId, currentRoom);
+    }
+  }, [isConnected, currentRoom]);
+
   const sendMessage = () => {
+    if (!currentRoom) {
+      Alert.alert('No Room', 'Please wait while we determine your location');
+      return;
+    }
+    
     if (message.trim() && socketRef.current && isConnected) {
       const messageData = {
         user: 'You',
@@ -148,14 +219,23 @@ export default function ChatScreen() {
           <View>
             <View style={styles.roomNameRow}>
               <Text style={styles.roomName}>{currentRoomDisplay}</Text>
-              <View style={[styles.statusDot, isConnected && styles.statusDotConnected]} />
+              <View style={[styles.statusDot, isConnected && currentRoom && styles.statusDotConnected]} />
             </View>
             <View style={styles.userCountRow}>
               <Ionicons name="people" size={12} color="#666" />
               <Text style={styles.userCountText}>
-                {isConnected ? `${userCount} people nearby` : 'Connecting...'}
+                {!currentRoom 
+                  ? 'Finding location...' 
+                  : isConnected 
+                    ? `${userCount} people nearby` 
+                    : 'Connecting...'}
               </Text>
             </View>
+            {locationError && (
+              <Text style={styles.errorText}>
+                Location error: {locationError}
+              </Text>
+            )}
           </View>
           <TouchableOpacity style={styles.menuButton}>
             <Ionicons name="ellipsis-vertical" size={20} color="#2D2D2D" />
@@ -241,6 +321,11 @@ const styles = StyleSheet.create({
   userCountText: {
     fontSize: 12,
     color: '#666666',
+  },
+  errorText: {
+    fontSize: 11,
+    color: '#EF4444',
+    marginTop: 2,
   },
   menuButton: {
     padding: 8,

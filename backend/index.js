@@ -14,6 +14,7 @@ const app = express();
 const server = http.createServer(app);
 const port = 3000
 
+// Initialize Socket.IO server
 SocketServerInit(server, port)
 
 app.get('/', (req, res) => {
@@ -33,6 +34,7 @@ app.get('/locations', (req, res) => {
   return res.json(location);
 });
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+// Use server.listen instead of app.listen so Socket.IO works
+server.listen(port, () => {
+  console.log(`Server listening on port ${port}`)
 });
