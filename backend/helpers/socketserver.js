@@ -45,10 +45,25 @@ function SocketServerInit(server, port) {
             }
         });
 
+        socket.on("leaveRoom", (userId, room) => {
+            if (LocationIds[room]) {
+                // Remove user from room array
+                if (rooms[room]) {
+                    rooms[room] = rooms[room].filter((id) => id !== userId);
+                }
+                // Leave the socket.io room
+                socket.leave(room);
+                console.log(`User ${userId} left room: ${room}`);
+                socket.emit("leftRoom", { room: room });
+            } else {
+                console.warn(`INVALID: User ${socket.id} tried to leave room: ${room}`)
+            }
+        });
+
         socket.on("sendMessage", (userId, room, message) => {
             if (LocationIds[room]) {
-                // Broadcast message to all users in the room (including sender)
-                io.to(room).broadcast.emit("recieveMessage", message);
+                // Broadcast message to all users in the room except the sender
+                socket.broadcast.to(room).emit("recieveMessage", message);
                 console.log(`Message sent in room ${room} by user ${userId}`);
             } else {
                 console.warn(`INVALID: User ${socket.id} tried to send message to room: ${room}`)
