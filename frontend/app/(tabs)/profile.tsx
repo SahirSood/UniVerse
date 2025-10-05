@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { io, Socket } from 'socket.io-client';
 import { useUserId } from '../../hooks/useUserId';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { config } from '../../config';
 
 type BroadcastType = 'coffee' | 'help' | 'study' | 'lost-found' | 'rideshare' | 'food-delivery';
 
@@ -15,8 +16,8 @@ interface BroadcastPreference {
   color: string;
 }
 
-const SOCKET_URL = 'http://172.16.203.31:3000';
-const API_URL = 'http://172.16.203.31:3000';
+const SOCKET_URL = config.SOCKET_URL;
+const API_URL = config.API_URL;
 export default function ProfileScreen() {
   const socketRef = useRef<Socket | null>(null);
 

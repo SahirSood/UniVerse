@@ -6,6 +6,7 @@ import { io, Socket } from 'socket.io-client';
 import { useUserLocation } from '../../hooks/useUserLocation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useUserId } from '../../hooks/useUserId';
+import { config } from '../../config';
 
 interface Message {
   id: number;
@@ -60,8 +61,8 @@ const LOCATIONS: LocationInfo[] = [
 
 // Update this to your backend URL - use your local network IP, not localhost
 // You can find this IP in your Expo output (exp://YOUR_IP:8081)
-const SOCKET_URL = 'http://172.16.203.31:3000';
-const API_URL = 'http://172.16.203.31:3000';
+const SOCKET_URL = config.SOCKET_URL;
+const API_URL = config.API_URL;
 
 export default function ChatScreen() {
   const [view, setView] = useState<'lobby' | 'chat'>('lobby');

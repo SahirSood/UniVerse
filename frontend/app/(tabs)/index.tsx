@@ -5,6 +5,7 @@ import { io, Socket } from 'socket.io-client';
 import { useUserId } from '../../hooks/useUserId';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
+import { config } from '../../config';
 
 type BroadcastType = 'coffee' | 'help' | 'study' | 'lost-found' | 'rideshare' | 'food-delivery';
 
@@ -18,7 +19,7 @@ type Broadcast = {
   location?: string;
 };
 
-const SOCKET_URL = 'http://172.16.203.31:3000';
+const SOCKET_URL = config.SOCKET_URL;
 
 export default function HomeScreen() {
   const socketRef = useRef<Socket | null>(null);

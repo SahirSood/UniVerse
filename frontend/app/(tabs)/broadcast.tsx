@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { io, Socket } from 'socket.io-client';
 import { useUserId } from '../../hooks/useUserId';
+import { config } from '../../config';
 
 type BroadcastType = 'coffee' | 'help' | 'study' | 'lost-found' | 'rideshare' | 'food-delivery';
 
@@ -14,7 +15,7 @@ interface QuickAction {
   color: string;
 }
 
-const SOCKET_URL = 'http://172.16.203.31:3000';
+const SOCKET_URL = config.SOCKET_URL;
 
 export default function BroadcastScreen() {
   const [customMessage, setCustomMessage] = useState('');
