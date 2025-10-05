@@ -14,7 +14,7 @@ interface Message {
   userId?: string;
 }
 
-const SOCKET_URL = 'http://YOUR_SERVER_IP:3000'; // Replace with your server IP
+const SOCKET_URL = 'http://localhost:3000';
 
 export default function ChatScreen() {
   const [message, setMessage] = useState('');

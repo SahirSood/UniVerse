@@ -33,6 +33,6 @@ app.get('/locations', (req, res) => {
   return res.json(location);
 });
 
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 });
